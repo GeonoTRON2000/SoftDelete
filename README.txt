@@ -2,7 +2,7 @@
 ##
 ##        Mod title:  SoftDelete
 ##
-##      Mod version:  1.0
+##      Mod version:  1.0.1
 ##  Works on FluxBB:  1.5
 ##     Release date:  2013-12-24
 ##           Author:  GeonoTRON2000 (geono@thegt.org)
@@ -97,42 +97,6 @@ function delete_topic($topic_id)
 }
 
 
-//
-// Delete a single post
-//
-function delete_post($post_id, $topic_id)
-{
-	global $db;
-
-	$result = $db->query('SELECT id, poster, posted FROM '.$db->prefix.'posts WHERE topic_id='.$topic_id.' ORDER BY id DESC LIMIT 2') or error('Unable to fetch post info', __FILE__, __LINE__, $db->error());
-	list($last_id, ,) = $db->fetch_row($result);
-	list($second_last_id, $second_poster, $second_posted) = $db->fetch_row($result);
-
-	// Delete the post
-	$db->query('DELETE FROM '.$db->prefix.'posts WHERE id='.$post_id) or error('Unable to delete post', __FILE__, __LINE__, $db->error());
-
-	strip_search_index($post_id);
-
-	// Count number of replies in the topic
-	$result = $db->query('SELECT COUNT(id) FROM '.$db->prefix.'posts WHERE topic_id='.$topic_id) or error('Unable to fetch post count for topic', __FILE__, __LINE__, $db->error());
-	$num_replies = $db->result($result, 0) - 1;
-
-	// If the message we deleted is the most recent in the topic (at the end of the topic)
-	if ($last_id == $post_id)
-	{
-		// If there is a $second_last_id there is more than 1 reply to the topic
-		if (!empty($second_last_id))
-			$db->query('UPDATE '.$db->prefix.'topics SET last_post='.$second_posted.', last_post_id='.$second_last_id.', last_poster=\''.$db->escape($second_poster).'\', num_replies='.$num_replies.' WHERE id='.$topic_id) or error('Unable to update topic', __FILE__, __LINE__, $db->error());
-		else
-			// We deleted the only reply, so now last_post/last_post_id/last_poster is posted/id/poster from the topic itself
-			$db->query('UPDATE '.$db->prefix.'topics SET last_post=posted, last_post_id=id, last_poster=poster, num_replies='.$num_replies.' WHERE id='.$topic_id) or error('Unable to update topic', __FILE__, __LINE__, $db->error());
-	}
-	else
-		// Otherwise we just decrement the reply counter
-		$db->query('UPDATE '.$db->prefix.'topics SET num_replies='.$num_replies.' WHERE id='.$topic_id) or error('Unable to update topic', __FILE__, __LINE__, $db->error());
-}
-
-
 #
 #---------[ 6. REPLACE WITH ]-------------------------------------------------
 #
@@ -200,6 +164,51 @@ function hard_delete_topic($topic_id)
 	require PUN_ROOT.'include/poll.php';
 	poll_delete($topic_id);
 }
+
+
+#
+#---------[ 7. FIND (line: 742) ]---------------------------------------------
+#
+
+//
+// Delete a single post
+//
+function delete_post($post_id, $topic_id)
+{
+	global $db;
+
+	$result = $db->query('SELECT id, poster, posted FROM '.$db->prefix.'posts WHERE topic_id='.$topic_id.' ORDER BY id DESC LIMIT 2') or error('Unable to fetch post info', __FILE__, __LINE__, $db->error());
+	list($last_id, ,) = $db->fetch_row($result);
+	list($second_last_id, $second_poster, $second_posted) = $db->fetch_row($result);
+
+	// Delete the post
+	$db->query('DELETE FROM '.$db->prefix.'posts WHERE id='.$post_id) or error('Unable to delete post', __FILE__, __LINE__, $db->error());
+
+	strip_search_index($post_id);
+
+	// Count number of replies in the topic
+	$result = $db->query('SELECT COUNT(id) FROM '.$db->prefix.'posts WHERE topic_id='.$topic_id) or error('Unable to fetch post count for topic', __FILE__, __LINE__, $db->error());
+	$num_replies = $db->result($result, 0) - 1;
+
+	// If the message we deleted is the most recent in the topic (at the end of the topic)
+	if ($last_id == $post_id)
+	{
+		// If there is a $second_last_id there is more than 1 reply to the topic
+		if (!empty($second_last_id))
+			$db->query('UPDATE '.$db->prefix.'topics SET last_post='.$second_posted.', last_post_id='.$second_last_id.', last_poster=\''.$db->escape($second_poster).'\', num_replies='.$num_replies.' WHERE id='.$topic_id) or error('Unable to update topic', __FILE__, __LINE__, $db->error());
+		else
+			// We deleted the only reply, so now last_post/last_post_id/last_poster is posted/id/poster from the topic itself
+			$db->query('UPDATE '.$db->prefix.'topics SET last_post=posted, last_post_id=id, last_poster=poster, num_replies='.$num_replies.' WHERE id='.$topic_id) or error('Unable to update topic', __FILE__, __LINE__, $db->error());
+	}
+	else
+		// Otherwise we just decrement the reply counter
+		$db->query('UPDATE '.$db->prefix.'topics SET num_replies='.$num_replies.' WHERE id='.$topic_id) or error('Unable to update topic', __FILE__, __LINE__, $db->error());
+}
+
+
+#
+#---------[ 8. REPLACE WITH ]-------------------------------------------------
+#
 
 //
 // Split a post and recycle
@@ -282,5 +291,5 @@ function hard_delete_post($post_id, $topic_id)
 
 
 #
-#---------[ 12. SAVE/UPLOAD ]-------------------------------------------------
+#---------[ 9. SAVE/UPLOAD ]--------------------------------------------------
 #
