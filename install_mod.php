@@ -3,7 +3,7 @@
 
 // Some info about your mod.
 $mod_title      = 'SoftDelete';
-$mod_version    = '1.0';
+$mod_version    = '1.0.3';
 $release_date   = '2013-12-24';
 $author         = 'GeonoTRON2000';
 $author_email   = 'geono@thegt.org';
