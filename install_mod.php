@@ -20,7 +20,15 @@ function install()
 {
 	global $db, $db_type, $pun_config;
 
-	$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_softdelete_forum\', \'0\')') or error('Unable to alter the configuration', __FILE__, __LINE__, $db->error());
+	// Insert new config option o_softdelete_forum
+	if (!array_key_exists('o_softdelete_forum', $pun_config))
+		$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_softdelete_forum\', \'0\')') or error('Unable to insert config value \'o_softdelete_forum\'', __FILE__, __LINE__, $db->error());
+
+	// Regenerate the config cache
+	if (!defined('FORUM_CACHE_FUNCTIONS_LOADED'))
+		require PUN_ROOT.'include/cache.php';
+
+	generate_config_cache();
 }
 
 // This following function will be called when the user presses the "Restore" button (only if $mod_restore is true (see above))
@@ -28,7 +36,13 @@ function restore()
 {
 	global $db, $db_type, $pun_config;
 
-	$db->query('DELETE FROM '.$db->prefix.'config WHERE conf_name = \'o_softdelete_forum\'') or error('Unable to alter the configuration', __FILE__, __LINE__, $db->error());
+	$db->query('DELETE FROM '.$db->prefix.'config WHERE conf_name = \'o_softdelete_forum\'') or error('Unable to remove configuration entry \'o_softdelete_forum\'', __FILE__, __LINE__, $db->error());
+	
+	// Regenerate the config cache
+	if (!defined('FORUM_CACHE_FUNCTIONS_LOADED'))
+		require PUN_ROOT.'include/cache.php';
+
+	generate_config_cache();
 }
 
 /***********************************************************************/
