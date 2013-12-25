@@ -2,7 +2,7 @@
 ##
 ##        Mod title:  SoftDelete
 ##
-##      Mod version:  1.0.2
+##      Mod version:  1.0.3
 ##  Works on FluxBB:  1.5
 ##     Release date:  2013-12-24
 ##           Author:  GeonoTRON2000 (geono@thegt.org)
